@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:BlockGuard.UI.ViewModels"
+        xmlns:local="clr-namespace:BlockGuard.UI"
         Title="BlockGuard - File Protection Manager"
         Width="1100" Height="720"
         MinWidth="900" MinHeight="600"
@@ -82,10 +83,21 @@
                 <!-- Bottom Status -->
                 <Border Grid.Row="2" Margin="12,0,12,16" Background="#FF1E1E45" CornerRadius="10" Padding="14,10">
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="{Binding StatusIcon}" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                            <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#FFB0B0CC" VerticalAlignment="Center"/>
-                        </StackPanel>
+                        <!-- Agent Toggle Row -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="{Binding StatusIcon}" FontSize="12" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#FFB0B0CC" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}"
+                                      IsChecked="{Binding IsAgentRunning, Mode=OneWay}"
+                                      Command="{Binding ToggleAgentCommand}"
+                                      IsEnabled="{Binding IsTogglingAgent, Converter={x:Static local:InverseBoolConverter.Instance}}"/>
+                        </Grid>
                         <TextBlock Text="{Binding ConfigFilePath}" FontSize="9" Foreground="#FF6B6B8D" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Border>
@@ -140,7 +152,52 @@
                             </Border>
                         </WrapPanel>
 
-                        <!-- Quick Actions -->
+                        <!-- Agent Control Card -->
+                        <Border Background="#FF1E1E45" CornerRadius="12" Padding="24,18" Margin="0,0,0,24">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Agent Control" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="10" Height="10" Margin="0,0,8,0" VerticalAlignment="Center">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="#FFFF4757"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsAgentRunning}" Value="True">
+                                                            <Setter Property="Fill" Value="#FF2ED573"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <TextBlock FontSize="13" Foreground="#FFB0B0CC">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Agent is stopped"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsAgentRunning}" Value="True">
+                                                            <Setter Property="Text" Value="Agent is running and protecting files"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding IsTogglingAgent}" Value="True">
+                                                            <Setter Property="Text" Value="Switching..."/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}"
+                                          IsChecked="{Binding IsAgentRunning, Mode=OneWay}"
+                                          Command="{Binding ToggleAgentCommand}"
+                                          IsEnabled="{Binding IsTogglingAgent, Converter={x:Static local:InverseBoolConverter.Instance}}"
+                                          VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
                         <TextBlock Text="Quick Actions" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
                         <WrapPanel>
                             <Button Style="{StaticResource PrimaryButton}" Margin="0,0,12,8" Command="{Binding AddFileCommand}">

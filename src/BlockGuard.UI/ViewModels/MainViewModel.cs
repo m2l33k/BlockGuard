@@ -6,10 +6,12 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using BlockGuard.UI.Services;
 using Microsoft.Win32;
 
@@ -18,7 +20,10 @@ namespace BlockGuard.UI.ViewModels;
 public sealed class MainViewModel : INotifyPropertyChanged
 {
     private readonly ConfigurationService _configService;
+    private readonly DispatcherTimer _statusTimer;
     private AppConfig _config = new();
+    private Process? _agentProcess;
+    private bool _isTogglingAgent;
 
     private string _statusText = "Loading...";
     private string _statusIcon = "⏳";
@@ -40,6 +45,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
         RemoveItemCommand = new RelayCommand<ProtectedItemViewModel>(RemoveItem);
         SaveCommand = new RelayCommand(SaveConfig);
         RefreshCommand = new RelayCommand(RefreshConfig);
+        ToggleAgentCommand = new RelayCommand(ToggleAgent);
+
+        // Status polling timer (check agent status every 3 seconds)
+        _statusTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(3)
+        };
+        _statusTimer.Tick += (_, _) => CheckAgentStatus();
+        _statusTimer.Start();
     }
 
     /// <summary>
@@ -112,6 +126,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public int TotalProtectedItems => ProtectedItems.Count;
     public bool EnableDpapiEncryption => _config.BlockGuard?.EnableDpapiEncryption ?? false;
 
+    public bool IsTogglingAgent
+    {
+        get => _isTogglingAgent;
+        set { _isTogglingAgent = value; OnPropertyChanged(); }
+    }
+
     // ----- Commands -----
 
     public ICommand AddFileCommand { get; }
@@ -119,6 +139,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
     public ICommand RemoveItemCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand RefreshCommand { get; }
+    public ICommand ToggleAgentCommand { get; }
 
     // ----- Methods -----
 
@@ -301,10 +322,26 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         try
         {
-            var processes = System.Diagnostics.Process.GetProcessesByName("BlockGuard.Agent");
+            // Check for any running agent process (ours or externally started)
+            var processes = Process.GetProcessesByName("BlockGuard.Agent");
+            var wasRunning = IsAgentRunning;
             IsAgentRunning = processes.Length > 0;
             StatusText = IsAgentRunning ? "Agent Running" : "Agent Stopped";
             StatusIcon = IsAgentRunning ? "🟢" : "🔴";
+
+            // If agent died externally, clean up our reference
+            if (!IsAgentRunning && _agentProcess != null)
+            {
+                _agentProcess.Dispose();
+                _agentProcess = null;
+            }
+
+            // Log status changes
+            if (wasRunning != IsAgentRunning && wasRunning)
+            {
+                AddActivity("Agent stopped", "The BlockGuard Agent process has exited");
+            }
+
             foreach (var p in processes) p.Dispose();
         }
         catch
@@ -313,6 +350,148 @@ public sealed class MainViewModel : INotifyPropertyChanged
             StatusText = "Agent Status Unknown";
             StatusIcon = "🟡";
         }
+    }
+
+    private void ToggleAgent()
+    {
+        if (IsAgentRunning)
+        {
+            StopAgent();
+        }
+        else
+        {
+            StartAgent();
+        }
+    }
+
+    private void StartAgent()
+    {
+        try
+        {
+            IsTogglingAgent = true;
+
+            // Find the agent project path
+            var agentProjectPath = FindAgentProjectPath();
+            if (agentProjectPath == null)
+            {
+                MessageBox.Show(
+                    "Could not find the BlockGuard.Agent project.\n" +
+                    "Make sure you are running from the solution directory.",
+                    "BlockGuard",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
+            }
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = $"run --project \"{agentProjectPath}\"",
+                UseShellExecute = false,
+                CreateNoWindow = false,
+                WorkingDirectory = Path.GetDirectoryName(agentProjectPath) ?? ""
+            };
+
+            _agentProcess = Process.Start(startInfo);
+
+            if (_agentProcess != null)
+            {
+                // Give the process a moment to start
+                Task.Delay(1500).ContinueWith(_ =>
+                {
+                    Application.Current?.Dispatcher.Invoke(() =>
+                    {
+                        CheckAgentStatus();
+                        IsTogglingAgent = false;
+                        AddActivity("Agent started", $"PID {_agentProcess?.Id}");
+                    });
+                });
+            }
+            else
+            {
+                IsTogglingAgent = false;
+                AddActivity("Error", "Failed to start agent process");
+            }
+        }
+        catch (Exception ex)
+        {
+            IsTogglingAgent = false;
+            MessageBox.Show(
+                $"Failed to start the BlockGuard Agent:\n{ex.Message}\n\n" +
+                "Tip: For ETW and ACL operations, the agent must run as Administrator.",
+                "BlockGuard - Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            AddActivity("Start failed", ex.Message);
+        }
+    }
+
+    private void StopAgent()
+    {
+        try
+        {
+            IsTogglingAgent = true;
+
+            // Kill our own launched process if we have one
+            if (_agentProcess is { HasExited: false })
+            {
+                _agentProcess.Kill(entireProcessTree: true);
+                _agentProcess.WaitForExit(3000);
+                _agentProcess.Dispose();
+                _agentProcess = null;
+            }
+            else
+            {
+                // Kill any externally started agent processes
+                var processes = Process.GetProcessesByName("BlockGuard.Agent");
+                foreach (var p in processes)
+                {
+                    try { p.Kill(); } catch { /* best effort */ }
+                    p.Dispose();
+                }
+            }
+
+            // Give time for process to exit
+            Task.Delay(1000).ContinueWith(_ =>
+            {
+                Application.Current?.Dispatcher.Invoke(() =>
+                {
+                    CheckAgentStatus();
+                    IsTogglingAgent = false;
+                    AddActivity("Agent stopped", "Agent process terminated by user");
+                });
+            });
+        }
+        catch (Exception ex)
+        {
+            IsTogglingAgent = false;
+            MessageBox.Show(
+                $"Failed to stop the BlockGuard Agent:\n{ex.Message}",
+                "BlockGuard - Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            AddActivity("Stop failed", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Walks up the directory tree to find the Agent's .csproj file.
+    /// </summary>
+    private static string? FindAgentProjectPath()
+    {
+        var dir = new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+        while (dir != null)
+        {
+            var slnFiles = dir.GetFiles("BlockGuard.sln");
+            if (slnFiles.Length > 0)
+            {
+                var agentCsproj = Path.Combine(dir.FullName, "src", "BlockGuard.Agent", "BlockGuard.Agent.csproj");
+                if (File.Exists(agentCsproj))
+                    return agentCsproj;
+            }
+            dir = dir.Parent;
+        }
+        return null;
     }
 
     private void UpdateStats()

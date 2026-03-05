@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BlockGuard.Agent")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9752bf8899515472067f804f7182c18ac2a305d3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+33c660fd362e197a027abb466880a9191f313b28")]
 [assembly: System.Reflection.AssemblyProductAttribute("BlockGuard.Agent")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BlockGuard.Agent")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
