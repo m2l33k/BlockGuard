@@ -3,6 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{53191CE1-8E53-486A-A4E4-55E7F20D3810}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockGuard.Core", "src\BlockGuard.Core\BlockGuard.Core.csproj", "{8003072E-1AC2-47F9-B002-EF161BA9E291}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockGuard.Monitoring", "src\BlockGuard.Monitoring\BlockGuard.Monitoring.csproj", "{E4B41941-885E-4598-997D-01AFC874A577}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockGuard.Policy", "src\BlockGuard.Policy\BlockGuard.Policy.csproj", "{0DEEBC23-15B0-4DA3-8A9A-D1EAF283B51C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockGuard.Protection", "src\BlockGuard.Protection\BlockGuard.Protection.csproj", "{88A4F0C5-50EB-4E25-8396-DB9C3E03F569}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockGuard.Agent", "src\BlockGuard.Agent\BlockGuard.Agent.csproj", "{1A0160D1-8022-4FB8-966F-F78FA7F6C4A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -10,5 +22,34 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8003072E-1AC2-47F9-B002-EF161BA9E291}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8003072E-1AC2-47F9-B002-EF161BA9E291}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8003072E-1AC2-47F9-B002-EF161BA9E291}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8003072E-1AC2-47F9-B002-EF161BA9E291}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4B41941-885E-4598-997D-01AFC874A577}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4B41941-885E-4598-997D-01AFC874A577}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4B41941-885E-4598-997D-01AFC874A577}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4B41941-885E-4598-997D-01AFC874A577}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DEEBC23-15B0-4DA3-8A9A-D1EAF283B51C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DEEBC23-15B0-4DA3-8A9A-D1EAF283B51C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DEEBC23-15B0-4DA3-8A9A-D1EAF283B51C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DEEBC23-15B0-4DA3-8A9A-D1EAF283B51C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88A4F0C5-50EB-4E25-8396-DB9C3E03F569}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88A4F0C5-50EB-4E25-8396-DB9C3E03F569}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88A4F0C5-50EB-4E25-8396-DB9C3E03F569}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88A4F0C5-50EB-4E25-8396-DB9C3E03F569}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A0160D1-8022-4FB8-966F-F78FA7F6C4A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A0160D1-8022-4FB8-966F-F78FA7F6C4A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A0160D1-8022-4FB8-966F-F78FA7F6C4A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A0160D1-8022-4FB8-966F-F78FA7F6C4A9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8003072E-1AC2-47F9-B002-EF161BA9E291} = {53191CE1-8E53-486A-A4E4-55E7F20D3810}
+		{E4B41941-885E-4598-997D-01AFC874A577} = {53191CE1-8E53-486A-A4E4-55E7F20D3810}
+		{0DEEBC23-15B0-4DA3-8A9A-D1EAF283B51C} = {53191CE1-8E53-486A-A4E4-55E7F20D3810}
+		{88A4F0C5-50EB-4E25-8396-DB9C3E03F569} = {53191CE1-8E53-486A-A4E4-55E7F20D3810}
+		{1A0160D1-8022-4FB8-966F-F78FA7F6C4A9} = {53191CE1-8E53-486A-A4E4-55E7F20D3810}
 	EndGlobalSection
 EndGlobal
