@@ -1,18 +1,33 @@
 ﻿using System.Windows;
+using BlockGuard.UI.ViewModels;
 
 namespace BlockGuard.UI;
 
 public partial class MainWindow : Window
 {
+    private bool _isInitialized;
+
     public MainWindow()
     {
         InitializeComponent();
+        _isInitialized = true;
+        Loaded += MainWindow_Loaded;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            await vm.InitializeAsync();
+        }
     }
 
     // ----- Page Navigation -----
 
     private void ShowPage(string pageName)
     {
+        if (!_isInitialized) return;
+
         DashboardPage.Visibility = Visibility.Collapsed;
         ProtectedFilesPage.Visibility = Visibility.Collapsed;
         ActivityPage.Visibility = Visibility.Collapsed;

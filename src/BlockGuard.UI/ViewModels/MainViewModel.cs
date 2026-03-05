@@ -38,11 +38,26 @@ public sealed class MainViewModel : INotifyPropertyChanged
         AddFileCommand = new RelayCommand(AddFile);
         AddFolderCommand = new RelayCommand(AddFolder);
         RemoveItemCommand = new RelayCommand<ProtectedItemViewModel>(RemoveItem);
-        SaveCommand = new RelayCommand(async () => await SaveConfigAsync());
-        RefreshCommand = new RelayCommand(async () => await LoadConfigAsync());
+        SaveCommand = new RelayCommand(SaveConfig);
+        RefreshCommand = new RelayCommand(RefreshConfig);
+    }
 
-        // Load on init
-        _ = LoadConfigAsync();
+    /// <summary>
+    /// Called from code-behind after the window is loaded (safe to use Dispatcher).
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        await LoadConfigAsync();
+    }
+
+    private async void SaveConfig()
+    {
+        await SaveConfigAsync();
+    }
+
+    private async void RefreshConfig()
+    {
+        await LoadConfigAsync();
     }
 
     // ----- Properties -----
@@ -320,7 +335,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     private void AddActivity(string action, string detail)
     {
-        Application.Current.Dispatcher.Invoke(() =>
+        void DoAdd()
         {
             RecentActivityItems.Insert(0, new ActivityItem
             {
@@ -334,7 +349,17 @@ public sealed class MainViewModel : INotifyPropertyChanged
             {
                 RecentActivityItems.RemoveAt(RecentActivityItems.Count - 1);
             }
-        });
+        }
+
+        var app = Application.Current;
+        if (app?.Dispatcher != null && !app.Dispatcher.CheckAccess())
+        {
+            app.Dispatcher.Invoke(DoAdd);
+        }
+        else
+        {
+            DoAdd();
+        }
     }
 
     private static string GetFileIcon(string path)

@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="assets/Untitled.jpg" alt="BlockGuard — Trusty" width="280" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET 9" />
   <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
@@ -15,6 +19,7 @@
 
 - [Features](#-features)
 - [Architecture](#-architecture)
+- [UI Management Interface](#-ui-management-interface)
 - [Prerequisites](#-prerequisites)
 - [Quick Start](#-quick-start)
 - [Configuration](#-configuration)
@@ -65,6 +70,33 @@ BlockGuard uses a **three-layer modular architecture**:
 │                   │    (LRU + TTL)      │                       │
 └───────────────────┴─────────────────────┴───────────────────────┘
 ```
+
+---
+
+## 🖥️ UI Management Interface
+
+BlockGuard includes a **WPF desktop application** for managing protected files and folders through a visual interface — no need to edit `appsettings.json` manually.
+
+<p align="center">
+  <img src="assets/blockguard_ui_mockup_1772678347576.png" alt="BlockGuard UI" width="640" />
+</p>
+
+### Features
+
+- **Dashboard** — Overview of protection status (total files, folders, encryption state)
+- **Protected Files** — Add/remove files and folders to protect from AI access via file browser dialogs
+- **Activity Log** — Real-time log of all configuration changes
+- **Settings** — View configuration file path and agent information
+- **Agent Status** — Live indicator showing if the BlockGuard agent service is running
+
+### How to Launch the UI
+
+```powershell
+# From the project root
+dotnet run --project src/BlockGuard.UI
+```
+
+> **Note:** The UI reads and writes `appsettings.json` from the Agent project. After saving changes, restart the BlockGuard Agent service for them to take effect.
 
 ---
 
@@ -430,6 +462,9 @@ BlockGuard/
 ├── BlockGuard.sln                        # Solution file
 ├── README.md                             # This file
 ├── architecture_overview.md              # Detailed architecture documentation
+├── assets/
+│   ├── Untitled.jpg                      # Project logo (Trusty mascot)
+│   └── blockguard_ui_mockup_*.png        # UI mockup screenshot
 │
 ├── src/
 │   ├── BlockGuard.Core/                  # Shared models, interfaces, configuration
@@ -460,10 +495,18 @@ BlockGuard/
 │   │   ├── DpapiWrapper.cs               # DPAPI encrypt/decrypt + secure delete
 │   │   └── AuditLogger.cs                # Structured JSON audit logging
 │   │
-│   └── BlockGuard.Agent/                 # Windows Service entry point
-│       ├── Program.cs                    # DI container, Serilog, hosting
-│       ├── BlockGuardService.cs          # Main orchestrator (5-phase startup)
-│       └── appsettings.json              # Configuration file
+│   ├── BlockGuard.Agent/                 # Windows Service entry point
+│   │   ├── Program.cs                    # DI container, Serilog, hosting
+│   │   ├── BlockGuardService.cs          # Main orchestrator (5-phase startup)
+│   │   └── appsettings.json              # Configuration file
+│   │
+│   └── BlockGuard.UI/                    # WPF Desktop Management Interface
+│       ├── App.xaml / App.xaml.cs         # Application resources & dark theme
+│       ├── MainWindow.xaml / .cs          # Main window with sidebar navigation
+│       ├── ViewModels/
+│       │   └── MainViewModel.cs          # MVVM ViewModel (commands, config I/O)
+│       └── Services/
+│           └── ConfigurationService.cs   # Reads/writes appsettings.json
 ```
 
 ---
